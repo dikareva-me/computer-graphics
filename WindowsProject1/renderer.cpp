@@ -110,12 +110,10 @@ bool Renderer::Init(HINSTANCE hInstance, HWND hWnd) {
     }
     return SUCCEEDED(hr);
 }
-
 void Renderer::HandleMovementInput() {
     XMFLOAT3 mouseMove = m_pInput->IsMouseUsed();
     m_pCamera->MouseMoved(mouseMove.x, mouseMove.y, mouseMove.z);
 }
-
 bool Renderer::Frame() {
     HRESULT hr = S_OK;
 

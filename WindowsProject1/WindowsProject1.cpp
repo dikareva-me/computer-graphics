@@ -114,9 +114,9 @@ HRESULT InitWindow(HINSTANCE hInstance, int nCmdShow)
     pRenderer = new Renderer();
     if (!pRenderer->Init(hInstance, hWnd)) {
         delete pRenderer;
-        return FALSE;
+        return E_FAIL;
     }
-    return TRUE;
+    return S_OK;
 }
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
