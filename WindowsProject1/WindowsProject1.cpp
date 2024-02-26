@@ -57,8 +57,10 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
         if (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE)) {
             TranslateMessage(&msg);
             DispatchMessage(&msg);
+        } 
+        if (pRenderer->Frame()) {
+            pRenderer->Render();
         }
-        pRenderer->Render();
     }
 
     pRenderer->Cleanup();
@@ -68,8 +70,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 HRESULT InitWindow(HINSTANCE hInstance, int nCmdShow)
 {
     WNDCLASSEX wcex;
-    wcex.cbSize = sizeof(WNDCLASSEX);
-    wcex.style = CS_HREDRAW | CS_VREDRAW;
+    wcex.cbSize = sizeof(WNDCLASSEX);    
+    wcex.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
     wcex.lpfnWndProc = WndProc;
     wcex.cbClsExtra = 0;
     wcex.cbWndExtra = 0;
@@ -93,13 +95,9 @@ HRESULT InitWindow(HINSTANCE hInstance, int nCmdShow)
         return E_FAIL;
     }
 
-    pRenderer = new Renderer();
-    if (!pRenderer->InitDevice(hWnd)) {
-        delete pRenderer;
-        return E_FAIL;
-    }
-
-    ShowWindow(hWnd, nCmdShow);
+    ShowWindow(hWnd, nCmdShow);  
+    SetForegroundWindow(hWnd);
+    SetFocus(hWnd);
     UpdateWindow(hWnd);
 
     {
@@ -113,8 +111,12 @@ HRESULT InitWindow(HINSTANCE hInstance, int nCmdShow)
 
         MoveWindow(hWnd, 100, 100, rc.right - rc.left, rc.bottom - rc.top, TRUE);
     }
-
-    return TRUE;
+    pRenderer = new Renderer();
+    if (!pRenderer->Init(hInstance, hWnd)) {
+        delete pRenderer;
+        return E_FAIL;
+    }
+    return S_OK;
 }
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
