@@ -24,35 +24,35 @@
     <ClInclude Include="Resource.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
-    <ClInclude Include="WindowsProject1.h">
+    <ClInclude Include="lab.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
+    <ClInclude Include="LoadDDS.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
     <ClInclude Include="renderer.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
-    <ClInclude Include="camera.h">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
-    <ClInclude Include="input.h">
+    <ClInclude Include="SceneManager.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="renderer.cpp">
+    <ClCompile Include="lab.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
-    <ClCompile Include="WindowsProject1.cpp">
+    <ClCompile Include="Renderer.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
-    <ClCompile Include="camera.cpp">
+    <ClCompile Include="SceneManager.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
-    <ClCompile Include="input.cpp">
+    <ClCompile Include="LoadDDS.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="WindowsProject1.rc">
+    <ResourceCompile Include="lab.rc">
       <Filter>Файлы ресурсов</Filter>
     </ResourceCompile>
   </ItemGroup>
@@ -60,17 +60,45 @@
     <Image Include="small.ico">
       <Filter>Файлы ресурсов</Filter>
     </Image>
-    <Image Include="WindowsProject1.ico">
+    <Image Include="lab.ico">
+      <Filter>Файлы ресурсов</Filter>
+    </Image>
+    <Image Include="src\kit.dds">
+      <Filter>Файлы ресурсов</Filter>
+    </Image>
+    <Image Include="src\nx.dds">
+      <Filter>Файлы ресурсов</Filter>
+    </Image>
+    <Image Include="src\ny.dds">
+      <Filter>Файлы ресурсов</Filter>
+    </Image>
+    <Image Include="src\nz.dds">
+      <Filter>Файлы ресурсов</Filter>
+    </Image>
+    <Image Include="src\px.dds">
+      <Filter>Файлы ресурсов</Filter>
+    </Image>
+    <Image Include="src\py.dds">
+      <Filter>Файлы ресурсов</Filter>
+    </Image>
+    <Image Include="src\pz.dds">
+      <Filter>Файлы ресурсов</Filter>
+    </Image>
+    <Image Include="src\sample_640×426.dds">
       <Filter>Файлы ресурсов</Filter>
     </Image>
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="pixelShader.hlsl">
+    <None Include="Texture_VS.hlsl">
       <Filter>Файлы ресурсов</Filter>
-    </FxCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="vertexShader.hlsl">
+    </None>
+    <None Include="Texture_PS.hlsl">
+      <Filter>Файлы ресурсов</Filter>
+    </None>
+    <None Include="Skybox_VS.hlsl">
+      <Filter>Файлы ресурсов</Filter>
+    </None>
+    <None Include="Skybox_PS.hlsl">
       <Filter>Файлы ресурсов</Filter>
     </None>
   </ItemGroup>
