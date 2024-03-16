@@ -6,6 +6,7 @@
 #include <locale>
 #include <codecvt>
 #include <d3dcompiler.h>
+#include <algorithm>
 #include "SceneManager.h"
 #include "LoadDDS.h"
 
@@ -31,6 +32,7 @@ private:
     HRESULT InitTextures();
     HRESULT CompileShader(const std::wstring& path, ID3D11DeviceChild** ppShader, const std::string& ext, ID3DBlob** ppCode = nullptr);
     HRESULT SetupBackBuffer();
+    HRESULT SetupDepthBlend();
     bool Update();
 
     unsigned int m_width = 1280;
@@ -62,6 +64,19 @@ private:
 
     ID3D11Texture2D* m_pCubemapTexture = NULL;
     ID3D11ShaderResourceView* m_pCubemapTextureView = NULL;
+    //
+    ID3D11Texture2D* m_pDepthBuffer = NULL;
+    ID3D11DepthStencilView* m_pDepthBufferDSV = NULL;
+    ID3D11DepthStencilState* m_pDepthStateReadWrite = NULL;
+    ID3D11DepthStencilState* m_pDepthStateRead = NULL;
+
+    ID3D11PixelShader* m_pSimpleTransTexturePixelShader = NULL;
+    ID3D11VertexShader* m_pSimpleTransTextureVertexShader = NULL;
+    ID3D11InputLayout* m_pSimpleTransTextureInputLayout = NULL;
+
+    ID3D11BlendState* m_pTransBlendState = NULL;
+
+    HRESULT SetupDepthBuffer();
 
     bool m_isRunning = false;
 };
