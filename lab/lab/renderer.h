@@ -33,7 +33,8 @@ private:
     HRESULT CompileShader(const std::wstring& path, ID3D11DeviceChild** ppShader, const std::string& ext, ID3DBlob** ppCode = nullptr);
     HRESULT SetupBackBuffer();
     HRESULT SetupDepthBlend();
-    bool Update();
+    void InitCube(ID3D11DepthStencilState* DepthState, ID3D11BlendState* BlendState, ID3D11InputLayout* InputLayout, ID3D11PixelShader* PS,
+        ID3D11VertexShader* VS, ID3D11ShaderResourceView* TextureView, ID3D11Buffer* IndexBuffer, ID3D11Buffer* VertexBuffer, UINT StridesSize);
 
     unsigned int m_width = 1280;
     unsigned int m_height = 720;

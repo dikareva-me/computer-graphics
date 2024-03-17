@@ -669,6 +669,32 @@ void Renderer::Clean() {
 	m_isRunning = false;
 }
 
+void Renderer::InitCube(ID3D11DepthStencilState* DepthState, ID3D11BlendState* BlendState, ID3D11InputLayout* InputLayout, ID3D11PixelShader* PS,
+	ID3D11VertexShader* VS, ID3D11ShaderResourceView* TextureView, ID3D11Buffer* IndexBuffer, ID3D11Buffer* VertexBuffer, UINT StridesSize)
+{
+	m_pDeviceContext->OMSetDepthStencilState(DepthState, 0);
+	m_pDeviceContext->OMSetBlendState(BlendState, nullptr, 0xFFFFFFFF);
+	m_pDeviceContext->IASetInputLayout(InputLayout);
+	m_pDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	m_pDeviceContext->VSSetShader(VS, nullptr, 0);
+	m_pDeviceContext->PSSetShader(PS, nullptr, 0);
+
+	m_pDeviceContext->VSSetConstantBuffers(0, 1, &m_pViewBuffer);
+	m_pDeviceContext->VSSetConstantBuffers(1, 1, &m_pSceneBuffer);
+
+	ID3D11SamplerState* samplers[] = { m_pTextureSampler };
+	m_pDeviceContext->PSSetSamplers(0, 1, samplers);
+
+	ID3D11ShaderResourceView* resources[] = { TextureView };
+	m_pDeviceContext->PSSetShaderResources(0, 1, resources);
+
+	m_pDeviceContext->IASetIndexBuffer(IndexBuffer, DXGI_FORMAT_R16_UINT, 0);
+	ID3D11Buffer* vertexBuffers[] = { VertexBuffer };
+	UINT strides[] = { StridesSize };
+	UINT offsets[] = { 0 };
+	m_pDeviceContext->IASetVertexBuffers(0, 1, vertexBuffers, strides, offsets);
+}
+
 bool Renderer::Render()
 {
 	if (!m_isRunning)
@@ -728,66 +754,53 @@ bool Renderer::Render()
 	const int indexCountCubes = 36;
 
 
-
-	m_pDeviceContext->OMSetDepthStencilState(m_pDepthStateRead, 0);
-	m_pDeviceContext->OMSetBlendState(nullptr, nullptr, 0xFFFFFFFF);
-	m_pDeviceContext->IASetInputLayout(m_pSkyboxInputLayout);
-	m_pDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-	m_pDeviceContext->VSSetShader(m_pSkyboxVS, nullptr, 0);
-	m_pDeviceContext->PSSetShader(m_pSkyboxPS, nullptr, 0);
-
-	m_pDeviceContext->VSSetConstantBuffers(0, 1, &m_pViewBuffer);
-	m_pDeviceContext->VSSetConstantBuffers(1, 1, &m_pSceneBuffer);
-
-	ID3D11SamplerState* samplers[] = { m_pTextureSampler };
-	m_pDeviceContext->PSSetSamplers(0, 1, samplers);
+	InitCube(m_pDepthStateRead, nullptr, m_pSkyboxInputLayout, m_pSkyboxPS, m_pSkyboxVS, 
+		m_pCubemapTextureView, m_pSphereIndexBuffer, m_pSphereVertexBuffer, sizeof(Vertex));
 	SceneBuffer sceneTransformsBuffer = { skyboxScale };
-
-	ID3D11ShaderResourceView* resources[] = { m_pCubemapTextureView };
-	m_pDeviceContext->PSSetShaderResources(0, 1, resources);
-
-	m_pDeviceContext->IASetIndexBuffer(m_pSphereIndexBuffer, DXGI_FORMAT_R16_UINT, 0);
-	ID3D11Buffer* vertexBuffers[] = { m_pSphereVertexBuffer };
-	UINT strides[] = { sizeof(Vertex) };
-	UINT offsets[] = { 0 };
-	m_pDeviceContext->IASetVertexBuffers(0, 1, vertexBuffers, strides, offsets);
-
 	m_pDeviceContext->UpdateSubresource(m_pSceneBuffer, 0, nullptr, &sceneTransformsBuffer, 0, 0);
 	m_pDeviceContext->DrawIndexed(756, 0, 0);
 	
 
-	m_pDeviceContext->OMSetDepthStencilState(m_pDepthStateReadWrite, 0);
-	m_pDeviceContext->OMSetBlendState(nullptr, nullptr, 0xFFFFFFFF);
-	m_pDeviceContext->IASetInputLayout(m_pTextureInputLayout);
-	m_pDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-	m_pDeviceContext->VSSetShader(m_pTextureVS, nullptr, 0);
-	m_pDeviceContext->PSSetShader(m_pTexturePS, nullptr, 0);
-
-	m_pDeviceContext->VSSetConstantBuffers(0, 1, &m_pViewBuffer);
-	m_pDeviceContext->VSSetConstantBuffers(1, 1, &m_pSceneBuffer);
-
-	ID3D11SamplerState* samplersNewCube[] = { m_pTextureSampler };
-	m_pDeviceContext->PSSetSamplers(0, 1, samplersNewCube);
+	InitCube(m_pDepthStateReadWrite, nullptr, m_pTextureInputLayout, m_pTexturePS, m_pTextureVS,
+		m_pCubeTextureView, m_pCubeIndexBuffer, m_pCubeVertexBuffer, sizeof(TextureVertex));
 
 	std::vector<SceneBuffer> sceneTransformsBufferNewCube;
 	sceneTransformsBufferNewCube.push_back({ pSceneManager.m_modelTransform });
 	auto tmpp = DirectX::XMMatrixTranslation(-2.5f, 1.0f, 0.0f);
 	sceneTransformsBufferNewCube.push_back({ tmpp });
 
-	ID3D11ShaderResourceView* resourcesNewCube[] = { m_pCubeTextureView };
-	m_pDeviceContext->PSSetShaderResources(0, 1, resourcesNewCube);
-	m_pDeviceContext->IASetIndexBuffer(m_pCubeIndexBuffer, DXGI_FORMAT_R16_UINT, 0);
-	ID3D11Buffer* vertexBuffersNewCube[] = { m_pCubeVertexBuffer };
-	UINT stridesNewCube[] = { sizeof(TextureVertex) };
-	UINT offsetsNewCube[] = { 0 };
-	m_pDeviceContext->IASetVertexBuffers(0, 1, vertexBuffersNewCube, stridesNewCube, offsetsNewCube);
-
 	m_pDeviceContext->UpdateSubresource(m_pSceneBuffer, 0, nullptr, &sceneTransformsBufferNewCube[1], 0, 0);
 	m_pDeviceContext->DrawIndexed(indexCountCubes, 0, 0);
 	m_pDeviceContext->UpdateSubresource(m_pSceneBuffer, 0, nullptr, &sceneTransformsBufferNewCube[0], 0, 0);
 	m_pDeviceContext->DrawIndexed(indexCountCubes, 0, 0);
 	
-	
+
+	m_pDeviceContext->PSSetConstantBuffers(1, 1, &m_pSceneBuffer);
+	InitCube(m_pDepthStateRead, m_pTransBlendState, m_pSimpleTransTextureInputLayout, m_pSimpleTransTexturePixelShader, m_pSimpleTransTextureVertexShader,
+		m_pCubeTextureView, m_pCubeIndexBuffer, m_pCubeVertexBuffer, sizeof(TextureVertex));
+
+	std::vector<SceneBuffer> sceneBuffer;
+	sceneBuffer.push_back({ DirectX::XMMatrixTranslation(4.75f, 0.7f, 0.9f), {1.0f, 0.0f, 0.5f, 0.5f} });
+	sceneBuffer.push_back({ DirectX::XMMatrixTranslation(-5.5f, 1.0f, 0.5f), { 0.0f, 1.0f, 0.0f, 0.5f } });
+
+	std::vector<std::pair<int, float>> cameraDist;
+	for (int i = 0; i < sceneBuffer.size(); i++)
+	{
+		float dist = DirectX::XMVectorGetZ((sceneBuffer[i].model * pSceneManager.m_cameraTransform).r[3]);
+		cameraDist.push_back({ i, dist });
+	}
+	std::stable_sort(cameraDist.begin(), cameraDist.end(), [](const std::pair<int, float>& a, const std::pair<int, float>& b)
+		{
+			return a.second > b.second;
+		});
+
+	for (int i = 0; i < cameraDist.size(); i++)
+	{
+		m_pDeviceContext->UpdateSubresource(m_pSceneBuffer, 0, nullptr, &sceneBuffer[cameraDist[i].first], 0, 0);
+		m_pDeviceContext->DrawIndexed(indexCountCubes, 0, 0);
+	}
+
+
 	result = m_pSwapChain->Present(0, 0);
 
 	return SUCCEEDED(result);

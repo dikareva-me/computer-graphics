@@ -63,28 +63,31 @@
     <Image Include="lab.ico">
       <Filter>Файлы ресурсов</Filter>
     </Image>
-    <Image Include="src\kit.dds">
+    <Image Include="src\1.dds">
       <Filter>Файлы ресурсов</Filter>
     </Image>
-    <Image Include="src\nx.dds">
+    <Image Include="src\1.png">
       <Filter>Файлы ресурсов</Filter>
     </Image>
-    <Image Include="src\ny.dds">
+    <Image Include="src\2.dds">
       <Filter>Файлы ресурсов</Filter>
     </Image>
-    <Image Include="src\nz.dds">
+    <Image Include="src\2.png">
       <Filter>Файлы ресурсов</Filter>
     </Image>
-    <Image Include="src\px.dds">
+    <Image Include="src\3.dds">
       <Filter>Файлы ресурсов</Filter>
     </Image>
-    <Image Include="src\py.dds">
+    <Image Include="src\4.dds">
       <Filter>Файлы ресурсов</Filter>
     </Image>
-    <Image Include="src\pz.dds">
+    <Image Include="src\5.dds">
       <Filter>Файлы ресурсов</Filter>
     </Image>
-    <Image Include="src\sample_640×426.dds">
+    <Image Include="src\6.dds">
+      <Filter>Файлы ресурсов</Filter>
+    </Image>
+    <Image Include="src\yoongi.dds">
       <Filter>Файлы ресурсов</Filter>
     </Image>
   </ItemGroup>
@@ -99,6 +102,12 @@
       <Filter>Файлы ресурсов</Filter>
     </None>
     <None Include="Skybox_PS.hlsl">
+      <Filter>Файлы ресурсов</Filter>
+    </None>
+    <None Include="TextureTrans_PS.hlsl">
+      <Filter>Файлы ресурсов</Filter>
+    </None>
+    <None Include="TextureTrans_VS.hlsl">
       <Filter>Файлы ресурсов</Filter>
     </None>
   </ItemGroup>
