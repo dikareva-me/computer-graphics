@@ -691,12 +691,13 @@ void Renderer::InitCube(ID3D11DepthStencilState* DepthState, ID3D11BlendState* B
 
 	m_pDeviceContext->VSSetConstantBuffers(0, 1, &m_pViewBuffer);
 	m_pDeviceContext->VSSetConstantBuffers(1, 1, &m_pSceneBuffer);
-
-	ID3D11SamplerState* samplers[] = { m_pTextureSampler };
-	m_pDeviceContext->PSSetSamplers(0, 1, samplers);
-
-	ID3D11ShaderResourceView* resources[] = { TextureView };
-	m_pDeviceContext->PSSetShaderResources(0, 1, resources);
+	if (TextureView != NULL) 
+	{
+		ID3D11SamplerState* samplers[] = { m_pTextureSampler };
+		m_pDeviceContext->PSSetSamplers(0, 1, samplers);
+		ID3D11ShaderResourceView* resources[] = { TextureView };
+		m_pDeviceContext->PSSetShaderResources(0, 1, resources);
+	}
 
 	m_pDeviceContext->IASetIndexBuffer(IndexBuffer, DXGI_FORMAT_R16_UINT, 0);
 	ID3D11Buffer* vertexBuffers[] = { VertexBuffer };
@@ -763,7 +764,7 @@ bool Renderer::Render()
 	m_pDeviceContext->RSSetScissorRects(1, &rect);
 	const int indexCountCubes = 36;
 
-
+	
 	InitCube(m_pDepthStateRead, nullptr, m_pSkyboxInputLayout, m_pSkyboxPS, m_pSkyboxVS, 
 		m_pCubemapTextureView, m_pSphereIndexBuffer, m_pSphereVertexBuffer, sizeof(Vertex));
 	SceneBuffer sceneTransformsBuffer = { skyboxScale };
@@ -784,10 +785,10 @@ bool Renderer::Render()
 	m_pDeviceContext->UpdateSubresource(m_pSceneBuffer, 0, nullptr, &sceneTransformsBufferNewCube[0], 0, 0);
 	m_pDeviceContext->DrawIndexed(indexCountCubes, 0, 0);
 	
-
+	
 	m_pDeviceContext->PSSetConstantBuffers(1, 1, &m_pSceneBuffer);
 	InitCube(m_pDepthStateRead, m_pTransBlendState, m_pSimpleTransTextureInputLayout, m_pSimpleTransTexturePixelShader, m_pSimpleTransTextureVertexShader,
-		m_pCubeTextureView, m_pCubeIndexBuffer, m_pCubeVertexBuffer, sizeof(TextureVertex));
+		NULL, m_pCubeIndexBuffer, m_pCubeVertexBuffer, sizeof(TextureVertex));
 
 	std::vector<SceneBuffer> sceneBuffer;
 	sceneBuffer.push_back({ DirectX::XMMatrixTranslation(4.75f, 0.7f, 0.9f), {1.0f, 0.0f, 0.5f, 0.5f} });
@@ -809,7 +810,7 @@ bool Renderer::Render()
 		m_pDeviceContext->UpdateSubresource(m_pSceneBuffer, 0, nullptr, &sceneBuffer[cameraDist[i].first], 0, 0);
 		m_pDeviceContext->DrawIndexed(indexCountCubes, 0, 0);
 	}
-
+	
 
 	result = m_pSwapChain->Present(0, 0);
 
@@ -824,11 +825,6 @@ bool Renderer::Resize(UINT width, UINT height)
 		m_pBackBufferRTV=SafeRelease(m_pBackBufferRTV);
 		m_pDepthBufferDSV=SafeRelease(m_pDepthBufferDSV);
 		m_pDepthBuffer=SafeRelease(m_pDepthBuffer);
-		/*m_pDepthBuffer = SafeRls(m_pDepthBuffer);
-		if ((m_pDepthBuffer) != NULL) {
-			m_pDepthBuffer->Release();
-			m_pDepthBuffer = NULL;
-		}*/
 
 		HRESULT result = m_pSwapChain->ResizeBuffers(2, width, height, DXGI_FORMAT_R8G8B8A8_UNORM, 0);
 		if (!SUCCEEDED(result))
