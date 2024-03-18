@@ -24,6 +24,7 @@ VSOutput vs(VSInput vertex) {
     VSOutput result;
     float4 pos = mul(model, float4(vertex.pos, 1.0)) + float4(cameraPos.xyz, 0.0);
     result.pos = mul(vp, pos);
+    result.pos.z = 0.0;
     result.localPos = vertex.pos;
     return result;
 }

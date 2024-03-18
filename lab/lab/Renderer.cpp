@@ -1,10 +1,15 @@
 #include "Renderer.h"
 
+
 template <class DirectXClass>
-void SafeRelease(DirectXClass* pointer)
+DirectXClass* SafeRelease(DirectXClass* pointer)
 {
 	if (pointer != NULL)
+	{
 		pointer->Release();
+		pointer = NULL;
+	}
+	return pointer;
 }
 
 struct Vertex {
@@ -19,6 +24,7 @@ struct TextureVertex {
 
 struct SceneBuffer {
 	DirectX::XMMATRIX model;
+	DirectX::XMVECTOR color;
 };
 
 struct ViewBuffer {
@@ -107,14 +113,20 @@ bool Renderer::Init(HWND hWnd)
 	result = pFactory->CreateSwapChain(m_pDevice, &swapChainDesc, &m_pSwapChain);
 	if (!SUCCEEDED(result))
 		return false;
-	result = SetupBackBuffer();
 
+	result = SetupDepthBlend();
+	result = SetupBackBuffer();
 	if (!SUCCEEDED(result))
 		return false;
+
+	result = SetupDepthBuffer();
+	if (!SUCCEEDED(result))
+		return false;
+
 	result = InitShaders();
 
-	SafeRelease(pSelectedAdapter);
-	SafeRelease(pFactory);
+	pSelectedAdapter= SafeRelease(pSelectedAdapter);
+	pFactory=SafeRelease(pFactory);
 
 	if (SUCCEEDED(result))
 	{
@@ -126,6 +138,58 @@ bool Renderer::Init(HWND hWnd)
 
 Renderer::~Renderer() {
 	Clean();
+}
+
+HRESULT Renderer::SetupDepthBlend() {
+	HRESULT result = S_OK;
+	{
+		D3D11_DEPTH_STENCIL_DESC desc = {};
+		desc.DepthEnable = TRUE;
+		desc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
+		desc.DepthFunc = D3D11_COMPARISON_GREATER_EQUAL;
+		desc.StencilEnable = FALSE;
+
+		result = m_pDevice->CreateDepthStencilState(&desc, &m_pDepthStateReadWrite);
+		if (SUCCEEDED(result))
+		{
+			result = SetResourceName(m_pDepthStateReadWrite, "DepthStateReadWrite");
+		}
+
+	}
+	{
+		D3D11_DEPTH_STENCIL_DESC desc = {};
+		desc.DepthEnable = TRUE;
+		desc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
+		desc.DepthFunc = D3D11_COMPARISON_GREATER_EQUAL;
+		desc.StencilEnable = FALSE;
+
+		result = m_pDevice->CreateDepthStencilState(&desc, &m_pDepthStateRead);
+		if (SUCCEEDED(result))
+		{
+			result = SetResourceName(m_pDepthStateRead, "DepthStateRead");
+		}
+	}
+	{
+		D3D11_BLEND_DESC desc = {};
+		desc.AlphaToCoverageEnable = FALSE;
+		desc.IndependentBlendEnable = FALSE;
+		desc.RenderTarget[0].BlendEnable = TRUE;
+		desc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
+		desc.RenderTarget[0].DestBlend = D3D11_BLEND_INV_SRC_ALPHA;
+		desc.RenderTarget[0].SrcBlend = D3D11_BLEND_SRC_ALPHA;
+		desc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_RED | D3D11_COLOR_WRITE_ENABLE_GREEN | D3D11_COLOR_WRITE_ENABLE_BLUE;
+		desc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
+		desc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ZERO;
+		desc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
+		result = m_pDevice->CreateBlendState(&desc, &m_pTransBlendState);
+
+		if (SUCCEEDED(result))
+		{
+			result = SetResourceName(m_pTransBlendState, "TransBlendState");
+		}
+	}
+	assert(SUCCEEDED(result));
+	return result;
 }
 
 HRESULT Renderer::InitTextures() {
@@ -467,7 +531,30 @@ HRESULT Renderer::InitShaders() {
 	{
 		result = SetResourceName(m_pTextureInputLayout, "TextureInputLayout");
 	}
-	SafeRelease(pVertexShaderCode);
+	pVertexShaderCode=SafeRelease(pVertexShaderCode);
+
+	static const D3D11_INPUT_ELEMENT_DESC TransTextureInputDesc[] = {
+	{"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0},
+	{"TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0}
+	};
+	if (SUCCEEDED(result))
+	{
+		result = CompileShader(L"TextureTrans_VS.hlsl", (ID3D11DeviceChild**)&m_pSimpleTransTextureVertexShader, "vs", &pVertexShaderCode);
+	}
+	if (SUCCEEDED(result))
+	{
+		result = CompileShader(L"TextureTrans_PS.hlsl", (ID3D11DeviceChild**)&m_pSimpleTransTexturePixelShader, "ps");
+	}
+
+	if (SUCCEEDED(result))
+	{
+		result = m_pDevice->CreateInputLayout(TransTextureInputDesc, 2, pVertexShaderCode->GetBufferPointer(), pVertexShaderCode->GetBufferSize(), &m_pSimpleTransTextureInputLayout);
+		if (SUCCEEDED(result))
+		{
+			result = SetResourceName(m_pSimpleTransTextureInputLayout, "TransTextureInputLayout");
+		}
+	}
+	pVertexShaderCode=SafeRelease(pVertexShaderCode);
 
 	// skybox
 	static const D3D11_INPUT_ELEMENT_DESC SkyboxInputDesc[] = {
@@ -491,7 +578,7 @@ HRESULT Renderer::InitShaders() {
 			result = SetResourceName(m_pSkyboxInputLayout, "SimpleSkyboxInputLayout");
 		}
 	}
-	SafeRelease(pVertexShaderCode);
+	pVertexShaderCode=SafeRelease(pVertexShaderCode);
 
 	return result;
 }
@@ -524,7 +611,7 @@ HRESULT Renderer::CompileShader(const std::wstring& path, ID3D11DeviceChild** pp
 		OutputDebugStringA((const char*)pErrMsg->GetBufferPointer());
 	}
 	assert(SUCCEEDED(result));
-	SafeRelease(pErrMsg);
+	pErrMsg=SafeRelease(pErrMsg);
 
 	if (ext == "vs") {
 		result = m_pDevice->CreateVertexShader(pCode->GetBufferPointer(), pCode->GetBufferSize(), nullptr, (ID3D11VertexShader**)ppShader);
@@ -543,41 +630,80 @@ HRESULT Renderer::CompileShader(const std::wstring& path, ID3D11DeviceChild** pp
 		*ppCode = pCode;
 	}
 	else {
-		SafeRelease(pCode);
+		pCode=SafeRelease(pCode);
 	}
 
 	return result;
 }
 
 void Renderer::Clean() {
-	SafeRelease(m_pTextureSampler);
-	SafeRelease(m_pCubeTextureView);
-	SafeRelease(m_pCubeTexture);
+	m_pTextureSampler=SafeRelease(m_pTextureSampler);
+	m_pCubeTextureView=SafeRelease(m_pCubeTextureView);
+	m_pCubeTexture=SafeRelease(m_pCubeTexture);
+	m_pCubemapTextureView=SafeRelease(m_pCubemapTextureView);
+	m_pCubemapTexture=SafeRelease(m_pCubemapTexture);
 
-	SafeRelease(m_pCubemapTextureView);
-	SafeRelease(m_pCubemapTexture);
+	m_pSkyboxInputLayout=SafeRelease(m_pSkyboxInputLayout);
+	m_pSkyboxPS=SafeRelease(m_pSkyboxPS);
+	m_pSkyboxVS=SafeRelease(m_pSkyboxVS);
 
-	SafeRelease(m_pSkyboxInputLayout);
-	SafeRelease(m_pSkyboxPS);
-	SafeRelease(m_pSkyboxVS);
-	SafeRelease(m_pSphereVertexBuffer);
-	SafeRelease(m_pSphereIndexBuffer);
-	SafeRelease(m_pCubeVertexBuffer);
-	SafeRelease(m_pCubeIndexBuffer);
+	m_pSimpleTransTextureInputLayout=SafeRelease(m_pSimpleTransTextureInputLayout);
+	m_pSimpleTransTexturePixelShader=SafeRelease(m_pSimpleTransTexturePixelShader);
+	m_pSimpleTransTextureVertexShader=SafeRelease(m_pSimpleTransTextureVertexShader);
 
-	SafeRelease(m_pTextureInputLayout);
-	SafeRelease(m_pTexturePS);
-	SafeRelease(m_pTextureVS);
-	//
-	SafeRelease(m_pBackBufferRTV);
-	SafeRelease(m_pSwapChain);
-	SafeRelease(m_pDevice);
-	SafeRelease(m_pViewBuffer);
-	SafeRelease(m_pSceneBuffer);
+	m_pDepthBuffer=SafeRelease(m_pDepthBuffer);
+	m_pDepthBufferDSV=SafeRelease(m_pDepthBufferDSV);
+	m_pViewBuffer=SafeRelease(m_pViewBuffer);
+	m_pSceneBuffer=SafeRelease(m_pSceneBuffer);
+
+	m_pSphereIndexBuffer=SafeRelease(m_pSphereIndexBuffer);
+	m_pSphereVertexBuffer=SafeRelease(m_pSphereVertexBuffer);
+	m_pCubeIndexBuffer=SafeRelease(m_pCubeIndexBuffer);
+	m_pCubeVertexBuffer=SafeRelease(m_pCubeVertexBuffer);
+
+	m_pTransBlendState=SafeRelease(m_pTransBlendState);
+	m_pDepthStateRead=SafeRelease(m_pDepthStateRead);
+	m_pDepthStateReadWrite=SafeRelease(m_pDepthStateReadWrite);
+	m_pBackBufferRTV=SafeRelease(m_pBackBufferRTV);
+	m_pSwapChain=SafeRelease(m_pSwapChain);
+	m_pDeviceContext=SafeRelease(m_pDeviceContext);
+
+	m_pTextureInputLayout=SafeRelease(m_pTextureInputLayout);
+	m_pTexturePS=SafeRelease(m_pTexturePS);
+	m_pTextureVS=SafeRelease(m_pTextureVS);
 	if (NULL != m_pDeviceContext)
 		m_pDeviceContext->ClearState();
-	SafeRelease(m_pDeviceContext);
+	m_pDeviceContext=SafeRelease(m_pDeviceContext);
+
+	m_pDevice=SafeRelease(m_pDevice);
 	m_isRunning = false;
+}
+
+void Renderer::InitCube(ID3D11DepthStencilState* DepthState, ID3D11BlendState* BlendState, ID3D11InputLayout* InputLayout, ID3D11PixelShader* PS,
+	ID3D11VertexShader* VS, ID3D11ShaderResourceView* TextureView, ID3D11Buffer* IndexBuffer, ID3D11Buffer* VertexBuffer, UINT StridesSize)
+{
+	m_pDeviceContext->OMSetDepthStencilState(DepthState, 0);
+	m_pDeviceContext->OMSetBlendState(BlendState, nullptr, 0xFFFFFFFF);
+	m_pDeviceContext->IASetInputLayout(InputLayout);
+	m_pDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	m_pDeviceContext->VSSetShader(VS, nullptr, 0);
+	m_pDeviceContext->PSSetShader(PS, nullptr, 0);
+
+	m_pDeviceContext->VSSetConstantBuffers(0, 1, &m_pViewBuffer);
+	m_pDeviceContext->VSSetConstantBuffers(1, 1, &m_pSceneBuffer);
+	if (TextureView != NULL) 
+	{
+		ID3D11SamplerState* samplers[] = { m_pTextureSampler };
+		m_pDeviceContext->PSSetSamplers(0, 1, samplers);
+		ID3D11ShaderResourceView* resources[] = { TextureView };
+		m_pDeviceContext->PSSetShaderResources(0, 1, resources);
+	}
+
+	m_pDeviceContext->IASetIndexBuffer(IndexBuffer, DXGI_FORMAT_R16_UINT, 0);
+	ID3D11Buffer* vertexBuffers[] = { VertexBuffer };
+	UINT strides[] = { StridesSize };
+	UINT offsets[] = { 0 };
+	m_pDeviceContext->IASetVertexBuffers(0, 1, vertexBuffers, strides, offsets);
 }
 
 bool Renderer::Render()
@@ -600,7 +726,7 @@ bool Renderer::Render()
 	float skyboxRad = sqrtf(powf(n, 2) + powf(width / 2, 2) + powf(height / 2, 2)) * 1.1f;
 	DirectX::XMMATRIX skyboxScale = DirectX::XMMatrixScaling(skyboxRad, skyboxRad, skyboxRad);
 
-	DirectX::XMMATRIX p = DirectX::XMMatrixPerspectiveLH(tanf(fov / 2) * 2 * n, tanf(fov / 2) * 2 * n * aspectRatio, n, f);
+	DirectX::XMMATRIX p = DirectX::XMMatrixPerspectiveLH(tanf(fov / 2) * 2 * f, tanf(fov / 2) * 2 * f * aspectRatio, f, n);
 
 
 	D3D11_MAPPED_SUBRESOURCE subresource;
@@ -615,10 +741,11 @@ bool Renderer::Render()
 	}
 
 	ID3D11RenderTargetView* views[] = { m_pBackBufferRTV };
-	m_pDeviceContext->OMSetRenderTargets(1, views, nullptr);
+	m_pDeviceContext->OMSetRenderTargets(1, views, m_pDepthBufferDSV);
 
 	static const FLOAT BackColor[4] = { 0.3f, 0.2f, 0.8f, 0.9f };
 	m_pDeviceContext->ClearRenderTargetView(m_pBackBufferRTV, BackColor);
+	m_pDeviceContext->ClearDepthStencilView(m_pDepthBufferDSV, D3D11_CLEAR_DEPTH, 0.0f, 0);
 
 	D3D11_VIEWPORT viewport;
 	viewport.TopLeftX = 0;
@@ -635,70 +762,69 @@ bool Renderer::Render()
 	rect.right = m_width;
 	rect.bottom = m_height;
 	m_pDeviceContext->RSSetScissorRects(1, &rect);
+	const int indexCountCubes = 36;
 
+	
+	InitCube(m_pDepthStateRead, nullptr, m_pSkyboxInputLayout, m_pSkyboxPS, m_pSkyboxVS, 
+		m_pCubemapTextureView, m_pSphereIndexBuffer, m_pSphereVertexBuffer, sizeof(Vertex));
+	SceneBuffer sceneTransformsBuffer = { skyboxScale };
+	m_pDeviceContext->UpdateSubresource(m_pSceneBuffer, 0, nullptr, &sceneTransformsBuffer, 0, 0);
+	m_pDeviceContext->DrawIndexed(756, 0, 0);
+	
+
+	InitCube(m_pDepthStateReadWrite, nullptr, m_pTextureInputLayout, m_pTexturePS, m_pTextureVS,
+		m_pCubeTextureView, m_pCubeIndexBuffer, m_pCubeVertexBuffer, sizeof(TextureVertex));
+
+	std::vector<SceneBuffer> sceneTransformsBufferNewCube;
+	sceneTransformsBufferNewCube.push_back({ pSceneManager.m_modelTransform });
+	auto tmpp = DirectX::XMMatrixTranslation(-2.5f, 1.0f, 0.0f);
+	sceneTransformsBufferNewCube.push_back({ tmpp });
+
+	m_pDeviceContext->UpdateSubresource(m_pSceneBuffer, 0, nullptr, &sceneTransformsBufferNewCube[1], 0, 0);
+	m_pDeviceContext->DrawIndexed(indexCountCubes, 0, 0);
+	m_pDeviceContext->UpdateSubresource(m_pSceneBuffer, 0, nullptr, &sceneTransformsBufferNewCube[0], 0, 0);
+	m_pDeviceContext->DrawIndexed(indexCountCubes, 0, 0);
+	
+	
+	m_pDeviceContext->PSSetConstantBuffers(1, 1, &m_pSceneBuffer);
+	InitCube(m_pDepthStateRead, m_pTransBlendState, m_pSimpleTransTextureInputLayout, m_pSimpleTransTexturePixelShader, m_pSimpleTransTextureVertexShader,
+		NULL, m_pCubeIndexBuffer, m_pCubeVertexBuffer, sizeof(TextureVertex));
+
+	std::vector<SceneBuffer> sceneBuffer;
+	sceneBuffer.push_back({ DirectX::XMMatrixTranslation(4.75f, 0.7f, 0.9f), {1.0f, 0.0f, 0.5f, 0.5f} });
+	sceneBuffer.push_back({ DirectX::XMMatrixTranslation(-5.5f, 1.0f, 0.5f), { 0.0f, 1.0f, 0.0f, 0.5f } });
+
+	std::vector<std::pair<int, float>> cameraDist;
+	for (int i = 0; i < sceneBuffer.size(); i++)
 	{
-		SceneBuffer sceneTransformsBuffer = { skyboxScale };
-
-		m_pDeviceContext->UpdateSubresource(m_pSceneBuffer, 0, nullptr, &sceneTransformsBuffer, 0, 0);
-
-		m_pDeviceContext->IASetInputLayout(m_pSkyboxInputLayout);
-		m_pDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-		m_pDeviceContext->VSSetShader(m_pSkyboxVS, nullptr, 0);
-		m_pDeviceContext->VSSetConstantBuffers(0, 1, &m_pViewBuffer);
-		m_pDeviceContext->VSSetConstantBuffers(1, 1, &m_pSceneBuffer);
-		m_pDeviceContext->PSSetShader(m_pSkyboxPS, nullptr, 0);
-
-		ID3D11SamplerState* samplers[] = { m_pTextureSampler };
-		m_pDeviceContext->PSSetSamplers(0, 1, samplers);
-		ID3D11ShaderResourceView* resources[] = { m_pCubemapTextureView };
-		m_pDeviceContext->PSSetShaderResources(0, 1, resources);
-
-		m_pDeviceContext->IASetIndexBuffer(m_pSphereIndexBuffer, DXGI_FORMAT_R16_UINT, 0);
-		ID3D11Buffer* vertexBuffers[] = { m_pSphereVertexBuffer };
-		UINT strides[] = { sizeof(Vertex) };
-		UINT offsets[] = { 0 };
-
-		m_pDeviceContext->IASetVertexBuffers(0, 1, vertexBuffers, strides, offsets);
-
-		m_pDeviceContext->DrawIndexed(756u, 0, 0);
+		float dist = DirectX::XMVectorGetZ((sceneBuffer[i].model * pSceneManager.m_cameraTransform).r[3]);
+		cameraDist.push_back({ i, dist });
 	}
+	std::stable_sort(cameraDist.begin(), cameraDist.end(), [](const std::pair<int, float>& a, const std::pair<int, float>& b)
+		{
+			return a.second > b.second;
+		});
+
+	for (int i = 0; i < cameraDist.size(); i++)
 	{
-		SceneBuffer sceneBuffer = { pSceneManager.m_modelTransform };
-
-		m_pDeviceContext->UpdateSubresource(m_pSceneBuffer, 0, nullptr, &sceneBuffer, 0, 0);
-
-		m_pDeviceContext->IASetInputLayout(m_pTextureInputLayout);
-		m_pDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-		m_pDeviceContext->VSSetShader(m_pTextureVS, nullptr, 0);
-		m_pDeviceContext->VSSetConstantBuffers(0, 1, &m_pViewBuffer);
-		m_pDeviceContext->VSSetConstantBuffers(1, 1, &m_pSceneBuffer);
-		m_pDeviceContext->PSSetShader(m_pTexturePS, nullptr, 0);
-
-		ID3D11SamplerState* samplers[] = { m_pTextureSampler };
-		m_pDeviceContext->PSSetSamplers(0, 1, samplers);
-		ID3D11ShaderResourceView* resources[] = { m_pCubeTextureView };
-		m_pDeviceContext->PSSetShaderResources(0, 1, resources);
-
-
-		m_pDeviceContext->IASetIndexBuffer(m_pCubeIndexBuffer, DXGI_FORMAT_R16_UINT, 0);
-		ID3D11Buffer* vertexBuffers[] = { m_pCubeVertexBuffer };
-		UINT strides[] = { sizeof(TextureVertex) };
-		UINT offsets[] = { 0 };
-		m_pDeviceContext->IASetVertexBuffers(0, 1, vertexBuffers, strides, offsets);
-
-		m_pDeviceContext->DrawIndexed(36, 0, 0);
+		m_pDeviceContext->UpdateSubresource(m_pSceneBuffer, 0, nullptr, &sceneBuffer[cameraDist[i].first], 0, 0);
+		m_pDeviceContext->DrawIndexed(indexCountCubes, 0, 0);
 	}
+	
 
 	result = m_pSwapChain->Present(0, 0);
 
 	return SUCCEEDED(result);
 }
 
+
 bool Renderer::Resize(UINT width, UINT height)
 {
 	if (width != m_width || height != m_height)
 	{
-		SafeRelease(m_pBackBufferRTV);
+		m_pBackBufferRTV=SafeRelease(m_pBackBufferRTV);
+		m_pDepthBufferDSV=SafeRelease(m_pDepthBufferDSV);
+		m_pDepthBuffer=SafeRelease(m_pDepthBuffer);
 
 		HRESULT result = m_pSwapChain->ResizeBuffers(2, width, height, DXGI_FORMAT_R8G8B8A8_UNORM, 0);
 		if (!SUCCEEDED(result))
@@ -707,14 +833,55 @@ bool Renderer::Resize(UINT width, UINT height)
 		m_height = height;
 
 		result = SetupBackBuffer();
+		assert(SUCCEEDED(result));
+		result = SetupDepthBuffer();
 		return SUCCEEDED(result);
 	}
 
 	return true;
 }
 
+HRESULT Renderer::SetupDepthBuffer()
+{
+	m_pDepthBufferDSV=SafeRelease(m_pDepthBufferDSV);
+	m_pDepthBuffer=SafeRelease(m_pDepthBuffer);
+	HRESULT result = S_OK;
+	if (SUCCEEDED(result))
+	{
+		D3D11_TEXTURE2D_DESC desc;
+		desc.Format = DXGI_FORMAT_D32_FLOAT;
+		desc.ArraySize = 1;
+		desc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
+		desc.CPUAccessFlags = 0;
+		desc.MiscFlags = 0;
+		desc.SampleDesc.Count = 1;
+		desc.SampleDesc.Quality = 0;
+		desc.Usage = D3D11_USAGE_DEFAULT;
+		desc.Height = m_height;
+		desc.Width = m_width;
+		desc.MipLevels = 1;
+		result = m_pDevice->CreateTexture2D(&desc, nullptr, &m_pDepthBuffer);
+		assert(SUCCEEDED(result));
+		if (SUCCEEDED(result))
+		{
+			result = SetResourceName(m_pDepthBuffer, "DepthBuffer");
+		}
+	}
+	if (SUCCEEDED(result))
+	{
+		result = m_pDevice->CreateDepthStencilView(m_pDepthBuffer, nullptr, &m_pDepthBufferDSV);
+		assert(SUCCEEDED(result));
+		if (SUCCEEDED(result))
+		{
+			result = SetResourceName(m_pDepthBufferDSV, "pDepthBufferDSV");
+		}
+	}
+	return result;
+}
+
 HRESULT Renderer::SetupBackBuffer()
 {
+	m_pBackBufferRTV=SafeRelease(m_pBackBufferRTV);
 	ID3D11Texture2D* pBackBuffer = NULL;
 	HRESULT result = m_pSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (LPVOID*)&pBackBuffer);
 	assert(SUCCEEDED(result));
@@ -722,7 +889,7 @@ HRESULT Renderer::SetupBackBuffer()
 	{
 		result = m_pDevice->CreateRenderTargetView(pBackBuffer, NULL, &m_pBackBufferRTV);
 		assert(SUCCEEDED(result));
-		SafeRelease(pBackBuffer);
+		pBackBuffer=SafeRelease(pBackBuffer);
 	}
 	return result;
 }

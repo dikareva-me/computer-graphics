@@ -167,14 +167,15 @@
   <ItemGroup>
     <Image Include="lab.ico" />
     <Image Include="small.ico" />
-    <Image Include="src\kit.dds" />
-    <Image Include="src\nx.dds" />
-    <Image Include="src\ny.dds" />
-    <Image Include="src\nz.dds" />
-    <Image Include="src\px.dds" />
-    <Image Include="src\py.dds" />
-    <Image Include="src\pz.dds" />
-    <Image Include="src\sample_640×426.dds" />
+    <Image Include="src\1.dds" />
+    <Image Include="src\1.png" />
+    <Image Include="src\2.dds" />
+    <Image Include="src\2.png" />
+    <Image Include="src\3.dds" />
+    <Image Include="src\4.dds" />
+    <Image Include="src\5.dds" />
+    <Image Include="src\6.dds" />
+    <Image Include="src\yoongi.dds" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Skybox_PS.hlsl">
@@ -220,6 +221,22 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
       <FileType>Document</FileType>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="TextureTrans_VS.hlsl">
+      <FileType>Document</FileType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+    </None>
+    <None Include="TextureTrans_PS.hlsl">
+      <FileType>Document</FileType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
     </None>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
