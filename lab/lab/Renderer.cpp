@@ -1,6 +1,16 @@
 #include "Renderer.h"
 
-#define SafeRelease(A) if ((A) != NULL) { (A)->Release(); (A) = NULL; }
+
+template <class DirectXClass>
+DirectXClass* SafeRelease(DirectXClass* pointer)
+{
+	if (pointer != NULL)
+	{
+		pointer->Release();
+		pointer = NULL;
+	}
+	return pointer;
+}
 
 struct Vertex {
 	float x, y, z;
@@ -14,7 +24,7 @@ struct TextureVertex {
 
 struct SceneBuffer {
 	DirectX::XMMATRIX model;
-	DirectX::XMVECTOR objects;
+	DirectX::XMVECTOR color;
 };
 
 struct ViewBuffer {
@@ -115,8 +125,8 @@ bool Renderer::Init(HWND hWnd)
 
 	result = InitShaders();
 
-	SafeRelease(pSelectedAdapter);
-	SafeRelease(pFactory);
+	pSelectedAdapter= SafeRelease(pSelectedAdapter);
+	pFactory=SafeRelease(pFactory);
 
 	if (SUCCEEDED(result))
 	{
@@ -521,7 +531,7 @@ HRESULT Renderer::InitShaders() {
 	{
 		result = SetResourceName(m_pTextureInputLayout, "TextureInputLayout");
 	}
-	SafeRelease(pVertexShaderCode);
+	pVertexShaderCode=SafeRelease(pVertexShaderCode);
 
 	static const D3D11_INPUT_ELEMENT_DESC TransTextureInputDesc[] = {
 	{"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0},
@@ -544,7 +554,7 @@ HRESULT Renderer::InitShaders() {
 			result = SetResourceName(m_pSimpleTransTextureInputLayout, "TransTextureInputLayout");
 		}
 	}
-	SafeRelease(pVertexShaderCode);
+	pVertexShaderCode=SafeRelease(pVertexShaderCode);
 
 	// skybox
 	static const D3D11_INPUT_ELEMENT_DESC SkyboxInputDesc[] = {
@@ -568,7 +578,7 @@ HRESULT Renderer::InitShaders() {
 			result = SetResourceName(m_pSkyboxInputLayout, "SimpleSkyboxInputLayout");
 		}
 	}
-	SafeRelease(pVertexShaderCode);
+	pVertexShaderCode=SafeRelease(pVertexShaderCode);
 
 	return result;
 }
@@ -601,7 +611,7 @@ HRESULT Renderer::CompileShader(const std::wstring& path, ID3D11DeviceChild** pp
 		OutputDebugStringA((const char*)pErrMsg->GetBufferPointer());
 	}
 	assert(SUCCEEDED(result));
-	SafeRelease(pErrMsg);
+	pErrMsg=SafeRelease(pErrMsg);
 
 	if (ext == "vs") {
 		result = m_pDevice->CreateVertexShader(pCode->GetBufferPointer(), pCode->GetBufferSize(), nullptr, (ID3D11VertexShader**)ppShader);
@@ -620,52 +630,52 @@ HRESULT Renderer::CompileShader(const std::wstring& path, ID3D11DeviceChild** pp
 		*ppCode = pCode;
 	}
 	else {
-		SafeRelease(pCode);
+		pCode=SafeRelease(pCode);
 	}
 
 	return result;
 }
 
 void Renderer::Clean() {
-	SafeRelease(m_pTextureSampler);
-	SafeRelease(m_pCubeTextureView);
-	SafeRelease(m_pCubeTexture);
-	SafeRelease(m_pCubemapTextureView);
-	SafeRelease(m_pCubemapTexture);
+	m_pTextureSampler=SafeRelease(m_pTextureSampler);
+	m_pCubeTextureView=SafeRelease(m_pCubeTextureView);
+	m_pCubeTexture=SafeRelease(m_pCubeTexture);
+	m_pCubemapTextureView=SafeRelease(m_pCubemapTextureView);
+	m_pCubemapTexture=SafeRelease(m_pCubemapTexture);
 
-	SafeRelease(m_pSkyboxInputLayout);
-	SafeRelease(m_pSkyboxPS);
-	SafeRelease(m_pSkyboxVS);
+	m_pSkyboxInputLayout=SafeRelease(m_pSkyboxInputLayout);
+	m_pSkyboxPS=SafeRelease(m_pSkyboxPS);
+	m_pSkyboxVS=SafeRelease(m_pSkyboxVS);
 
-	SafeRelease(m_pSimpleTransTextureInputLayout);
-	SafeRelease(m_pSimpleTransTexturePixelShader);
-	SafeRelease(m_pSimpleTransTextureVertexShader);
+	m_pSimpleTransTextureInputLayout=SafeRelease(m_pSimpleTransTextureInputLayout);
+	m_pSimpleTransTexturePixelShader=SafeRelease(m_pSimpleTransTexturePixelShader);
+	m_pSimpleTransTextureVertexShader=SafeRelease(m_pSimpleTransTextureVertexShader);
 
-	SafeRelease(m_pDepthBuffer);
-	SafeRelease(m_pDepthBufferDSV);
-	SafeRelease(m_pViewBuffer);
-	SafeRelease(m_pSceneBuffer);
+	m_pDepthBuffer=SafeRelease(m_pDepthBuffer);
+	m_pDepthBufferDSV=SafeRelease(m_pDepthBufferDSV);
+	m_pViewBuffer=SafeRelease(m_pViewBuffer);
+	m_pSceneBuffer=SafeRelease(m_pSceneBuffer);
 
-	SafeRelease(m_pSphereIndexBuffer);
-	SafeRelease(m_pSphereVertexBuffer);
-	SafeRelease(m_pCubeIndexBuffer);
-	SafeRelease(m_pCubeVertexBuffer);
+	m_pSphereIndexBuffer=SafeRelease(m_pSphereIndexBuffer);
+	m_pSphereVertexBuffer=SafeRelease(m_pSphereVertexBuffer);
+	m_pCubeIndexBuffer=SafeRelease(m_pCubeIndexBuffer);
+	m_pCubeVertexBuffer=SafeRelease(m_pCubeVertexBuffer);
 
-	SafeRelease(m_pTransBlendState);
-	SafeRelease(m_pDepthStateRead);
-	SafeRelease(m_pDepthStateReadWrite);
-	SafeRelease(m_pBackBufferRTV);
-	SafeRelease(m_pSwapChain);
-	SafeRelease(m_pDeviceContext);
+	m_pTransBlendState=SafeRelease(m_pTransBlendState);
+	m_pDepthStateRead=SafeRelease(m_pDepthStateRead);
+	m_pDepthStateReadWrite=SafeRelease(m_pDepthStateReadWrite);
+	m_pBackBufferRTV=SafeRelease(m_pBackBufferRTV);
+	m_pSwapChain=SafeRelease(m_pSwapChain);
+	m_pDeviceContext=SafeRelease(m_pDeviceContext);
 
-	SafeRelease(m_pTextureInputLayout);
-	SafeRelease(m_pTexturePS);
-	SafeRelease(m_pTextureVS);
+	m_pTextureInputLayout=SafeRelease(m_pTextureInputLayout);
+	m_pTexturePS=SafeRelease(m_pTexturePS);
+	m_pTextureVS=SafeRelease(m_pTextureVS);
 	if (NULL != m_pDeviceContext)
 		m_pDeviceContext->ClearState();
-	SafeRelease(m_pDeviceContext);
+	m_pDeviceContext=SafeRelease(m_pDeviceContext);
 
-	SafeRelease(m_pDevice);
+	m_pDevice=SafeRelease(m_pDevice);
 	m_isRunning = false;
 }
 
@@ -811,9 +821,14 @@ bool Renderer::Resize(UINT width, UINT height)
 {
 	if (width != m_width || height != m_height)
 	{
-		SafeRelease(m_pBackBufferRTV);
-		SafeRelease(m_pDepthBufferDSV);
-		SafeRelease(m_pDepthBuffer);
+		m_pBackBufferRTV=SafeRelease(m_pBackBufferRTV);
+		m_pDepthBufferDSV=SafeRelease(m_pDepthBufferDSV);
+		m_pDepthBuffer=SafeRelease(m_pDepthBuffer);
+		/*m_pDepthBuffer = SafeRls(m_pDepthBuffer);
+		if ((m_pDepthBuffer) != NULL) {
+			m_pDepthBuffer->Release();
+			m_pDepthBuffer = NULL;
+		}*/
 
 		HRESULT result = m_pSwapChain->ResizeBuffers(2, width, height, DXGI_FORMAT_R8G8B8A8_UNORM, 0);
 		if (!SUCCEEDED(result))
@@ -832,8 +847,8 @@ bool Renderer::Resize(UINT width, UINT height)
 
 HRESULT Renderer::SetupDepthBuffer()
 {
-	SafeRelease(m_pDepthBufferDSV);
-	SafeRelease(m_pDepthBuffer);
+	m_pDepthBufferDSV=SafeRelease(m_pDepthBufferDSV);
+	m_pDepthBuffer=SafeRelease(m_pDepthBuffer);
 	HRESULT result = S_OK;
 	if (SUCCEEDED(result))
 	{
@@ -870,7 +885,7 @@ HRESULT Renderer::SetupDepthBuffer()
 
 HRESULT Renderer::SetupBackBuffer()
 {
-	SafeRelease(m_pBackBufferRTV);
+	m_pBackBufferRTV=SafeRelease(m_pBackBufferRTV);
 	ID3D11Texture2D* pBackBuffer = NULL;
 	HRESULT result = m_pSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (LPVOID*)&pBackBuffer);
 	assert(SUCCEEDED(result));
@@ -878,7 +893,7 @@ HRESULT Renderer::SetupBackBuffer()
 	{
 		result = m_pDevice->CreateRenderTargetView(pBackBuffer, NULL, &m_pBackBufferRTV);
 		assert(SUCCEEDED(result));
-		SafeRelease(pBackBuffer);
+		pBackBuffer=SafeRelease(pBackBuffer);
 	}
 	return result;
 }
