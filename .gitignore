@@ -1,4 +1,7 @@
 .vs/*
+Debug
+Release
+v16
 *.db
 *.db-shm
 *.db-wal
