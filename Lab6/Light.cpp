@@ -109,7 +109,7 @@ void Light::addLight(ID3D11Device* device, ID3D11DeviceContext* m_pDeviceContext
 
     lightsShapes.push_back(sphere);
 
-    light.lightsCount = lightsShapes.size();
+    light.lightsCount = static_cast<int>(lightsShapes.size());
     light.diffuseCoef = 0.5f;
     light.shine = 20.0f;
     light.specularCoef = 0.9f;

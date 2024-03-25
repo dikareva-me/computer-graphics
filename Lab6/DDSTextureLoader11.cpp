@@ -2123,8 +2123,8 @@ HRESULT DirectX::CreateDDSCubeTextureFromFile(
         texDesc.CPUAccessFlags = 0;
         texDesc.MiscFlags = D3D11_RESOURCE_MISC_TEXTURECUBE;
 
-        UINT32 blockWidth = ceil((float)header->width / 4);
-        UINT32 blockHeight = ceil((float)header->height / 4);
+        UINT32 blockWidth = static_cast<UINT32>(ceil((float)header->width / 4));
+        UINT32 blockHeight = static_cast<UINT32>(ceil((float)header->height / 4));
 
         UINT32 pitch = blockWidth * 8;
 

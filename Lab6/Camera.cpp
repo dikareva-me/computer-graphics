@@ -72,14 +72,14 @@ void Camera::SetLookAtPos(XMFLOAT3 lookAtPos)
 	lookAtPos.y = pos.y - lookAtPos.y;
 	lookAtPos.z = pos.z - lookAtPos.z;
 
-	float pitch = 0.0f;
+	double pitch = 0.0f;
 	if (lookAtPos.y != 0.0f)
 	{
-		const float distance = sqrt((double)lookAtPos.x * lookAtPos.x + (double)lookAtPos.z * lookAtPos.z);
+		const double distance = sqrt((double)lookAtPos.x * lookAtPos.x + (double)lookAtPos.z * lookAtPos.z);
 		pitch = atan(lookAtPos.y / distance);
 	}
 
-	float yaw = 0.0f;
+	double yaw = 0.0f;
 	if (lookAtPos.x != 0.0f)
 	{
 		yaw = atan(lookAtPos.x / lookAtPos.z);
@@ -87,7 +87,7 @@ void Camera::SetLookAtPos(XMFLOAT3 lookAtPos)
 	if (lookAtPos.z > 0)
 		yaw += XM_PI;
 
-	SetRotation(XMVectorSet(pitch, yaw, 0.0f, 1.0f));
+	SetRotation(XMVectorSet(static_cast<float>(pitch), static_cast<float>(yaw), 0.0f, 1.0f));
 }
 
 const XMVECTOR& Camera::GetForwardVector()

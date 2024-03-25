@@ -459,13 +459,13 @@ HRESULT Sphere::CreateGeometry(ID3D11Device* m_pDevice)
 
     for (int i = 1; i < stackCount; i++)
     {
-        float phi = i * phiStep;
+        double phi = static_cast<double>(i * phiStep);
         for (int j = 0; j <= sliceCount; j++)
         {
-            float theta = j * thetaStep;
-            Vertex v = { radius * sin(phi) * cos(theta),
-                                radius * cos(phi),
-                                radius * sin(phi) * sin(theta) };
+            double theta = static_cast<double>(j * thetaStep);
+            Vertex v = { static_cast<float>(radius * sin(phi) * cos(theta)),
+                                static_cast<float>(radius * cos(phi)),
+                                static_cast<float>(radius * sin(phi) * sin(theta) )};
             Vertices.push_back(v);
         }
     }
@@ -491,7 +491,7 @@ HRESULT Sphere::CreateGeometry(ID3D11Device* m_pDevice)
         }
     }
 
-    int southPoleIndex = Vertices.size() - 1;
+    int southPoleIndex = static_cast<int>(Vertices.size() - 1);
     baseIndex = southPoleIndex - ringVertexCount;
     for (int i = 0; i < sliceCount; i++) {
         Indices.push_back(southPoleIndex);
@@ -502,7 +502,7 @@ HRESULT Sphere::CreateGeometry(ID3D11Device* m_pDevice)
     D3D11_SUBRESOURCE_DATA data;
 
     D3D11_BUFFER_DESC desc = {};
-    desc.ByteWidth = Vertices.size() * sizeof(Vertex);
+    desc.ByteWidth = static_cast<UINT>(Vertices.size() * sizeof(Vertex));
     desc.Usage = D3D11_USAGE_IMMUTABLE;
     desc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
     desc.CPUAccessFlags = 0;
@@ -510,16 +510,16 @@ HRESULT Sphere::CreateGeometry(ID3D11Device* m_pDevice)
     desc.StructureByteStride = 0;
 
     data.pSysMem = Vertices.data();
-    data.SysMemPitch = Vertices.size() * sizeof(Vertex);
+    data.SysMemPitch = static_cast<UINT>(Vertices.size() * sizeof(Vertex));
     data.SysMemSlicePitch = 0;
 
     HRESULT result = m_pDevice->CreateBuffer(&desc, &data, &m_pVertextBuffer);
 
     if (SUCCEEDED(result))
     {
-        numIndeces = Indices.size();
+        numIndeces = (int)Indices.size();
         desc = {};
-        desc.ByteWidth = Indices.size() * sizeof(DWORD);
+        desc.ByteWidth = static_cast<UINT>(Indices.size() * sizeof(DWORD));
         desc.Usage = D3D11_USAGE_IMMUTABLE;
         desc.BindFlags = D3D11_BIND_INDEX_BUFFER;
         desc.CPUAccessFlags = 0;
@@ -527,7 +527,7 @@ HRESULT Sphere::CreateGeometry(ID3D11Device* m_pDevice)
         desc.StructureByteStride = 0;
 
         data.pSysMem = Indices.data();
-        data.SysMemPitch = Indices.size() * sizeof(DWORD);
+        data.SysMemPitch = static_cast<UINT>(Indices.size() * sizeof(DWORD));
         data.SysMemSlicePitch = 0;
 
         result = m_pDevice->CreateBuffer(&desc, &data, &m_pIndexBuffer);

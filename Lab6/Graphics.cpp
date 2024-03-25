@@ -202,7 +202,7 @@ bool Graphics::InitScene()
     camera.SetProjectionValues(100.0f, (float)windowHeight / windowWidth, 0.1f, 100.0f);
     camera.AdjustRotation(DirectX::XMVectorSet(0.0f, DirectX::XM_PIDIV2, 0.0f, 1.0f));
 
-    skyBox.setRadius(camera.GetFov(), camera.GetNearPlane(), windowWidth, windowHeight);
+    skyBox.setRadius(camera.GetFov(), camera.GetNearPlane(), static_cast<float>(windowWidth), static_cast<float>(windowHeight));
     
     square.setColor(DirectX::XMVectorSet(1.0f, 0.0f, 1.0f, 0.5f));
     square1.setColor(DirectX::XMVectorSet(0.0f, 1.0f, 0.5f, 0.5f));
@@ -337,7 +337,7 @@ void Graphics::Resize(const int& width, const int& height)
                 }
             }
 
-            skyBox.setRadius(camera.GetFov(), camera.GetNearPlane(), windowWidth, windowHeight);
+            skyBox.setRadius(camera.GetFov(), camera.GetNearPlane(), static_cast<float>(windowWidth), static_cast<float>(windowHeight));
 
             assert(SUCCEEDED(result));
         }
