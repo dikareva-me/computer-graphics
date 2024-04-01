@@ -56,6 +56,6 @@ protected:
 
 	SceneBuffer scBuffer;
 
-	int maxInstancesNum = 100;
+	int maxInstancesNum = 1000;
 	int numInstances = 0;
 };

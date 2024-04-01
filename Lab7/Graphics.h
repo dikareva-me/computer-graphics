@@ -39,6 +39,7 @@ public:
 	HRESULT CreateBlendState();
 
 	void RenderImGUI();
+	void setDebugFrustum();
 private:
 	int windowWidth;
 	int windowHeight;

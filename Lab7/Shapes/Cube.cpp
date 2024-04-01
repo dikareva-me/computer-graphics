@@ -5,7 +5,6 @@
 #include "../ImGui/imgui_impl_win32.h"
 #include "../ImGui/imgui_impl_dx11.h"
 
-#include <DirectXCollision.h>
 
 HRESULT Cube::CreateGeometry(ID3D11Device* m_pDevice)
 {
@@ -251,14 +250,27 @@ HRESULT Cube::CreateTextures(ID3D11Device* m_pDevice)
     return result;
 }
 
+void Cube::setDebug()
+{
+    debugMode = !debugMode;
+}
+
 void Cube::Draw(const DirectX::XMMATRIX& projMatrix, const DirectX::XMMATRIX& viewMatrix,
 	ID3D11DeviceContext* m_pDeviceContext)
 {
+    DirectX::BoundingFrustum fr;
     m_pDeviceContext->RSSetState(rasterizerState);
-
-    DirectX::BoundingFrustum fr(projMatrix, true);
-    DirectX::XMMATRIX inverseViewMatrix = DirectX::XMMatrixInverse(nullptr, viewMatrix);
-    fr.Transform(fr, inverseViewMatrix);
+    if (debugMode)
+    {
+         fr = frustum;
+    }
+    else
+    {
+        fr.CreateFromMatrix(fr, projMatrix, true);
+        DirectX::XMMATRIX inverseViewMatrix = DirectX::XMMatrixInverse(nullptr, viewMatrix);
+        fr.Transform(fr, inverseViewMatrix);
+        frustum = fr;
+    }
 
     visibleObjectNum = 0;
     for (int i = 0; i < numInstances; i++)

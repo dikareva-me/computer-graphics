@@ -92,6 +92,19 @@ void Engine::Update()
         graphics->GetCamera().AdjustPosition(DirectX::XMVectorSet(0.0f, -cameraSpeed, 0.0f, 1.0f));
     }
 
+    if (Keyboard::getInstance().KeyIsPressed('C'))
+    {
+        if (!pressedKey)
+        {
+            graphics->setDebugFrustum(); 
+            pressedKey = true;
+        }
+    }
+    else
+    {
+        pressedKey = false;
+    }
+
     graphics->RenderFrame();
 }
 

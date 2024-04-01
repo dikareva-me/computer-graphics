@@ -19,6 +19,7 @@ private:
 	Engine(const Engine&) = delete;
 	Engine& operator=(Engine&) = delete;
 private:
+	bool pressedKey = false;
 	std::unique_ptr<RenderWindow> window;
 	std::unique_ptr<Graphics> graphics;
 };

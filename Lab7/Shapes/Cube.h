@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Shapes.h"
+#include <DirectXCollision.h>
 
 class Cube : public InstanceShape
 {
@@ -36,7 +37,10 @@ public:
 		ID3D11DeviceContext* m_pDeviceContext) final;
 	void RenderImGUI();
 
+	void setDebug();
 private:
+	DirectX::BoundingFrustum frustum;
+	bool debugMode = false;
 	std::vector<GeomBuffer> geomBuffers;
 	std::vector<VisibleIndexes> visibleIndBuffer;
 	std::vector<TextureNum> texNumBuffers;

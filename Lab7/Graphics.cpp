@@ -274,6 +274,11 @@ Camera& Graphics::GetCamera()
     return camera;
 }
 
+void Graphics::setDebugFrustum()
+{
+    cubeInstances.setDebug();
+}
+
 void Graphics::Resize(const int& width, const int& height)
 {
     if ((width != windowWidth || height != windowHeight) && m_pSwapChain != nullptr)
