@@ -20,6 +20,13 @@ void InstanceShape::addInstance()
         numInstances++;
     }
 }
+void InstanceShape::addHundredInstances()
+{
+    if (numInstances + 100 < maxInstancesNum)
+    {
+        numInstances += 100;
+    }
+}
 
 void InstanceShape::Translate(DirectX::XMMATRIX translateMatrix, int ind)
 {

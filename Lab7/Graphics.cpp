@@ -206,7 +206,8 @@ bool Graphics::InitScene()
     camera.SetProjectionValues(100.0f, (float)windowHeight / windowWidth, 0.1f, 100.0f);
     camera.AdjustRotation(DirectX::XMVectorSet(0.0f, DirectX::XM_PIDIV2, 0.0f, 1.0f));
 
-    skyBox.setRadius(camera.GetFov(), camera.GetNearPlane(), windowWidth, windowHeight);
+
+    skyBox.setRadius(camera.GetFov(), camera.GetNearPlane(), static_cast<float>(windowWidth), static_cast<float>(windowHeight));
 
     return SUCCEEDED(hr);
 }
@@ -278,6 +279,59 @@ void Graphics::setDebugFrustum()
 {
     cubeInstances.setDebug();
 }
+/*
+	HRESULT Graphics::SetupColorBuffer();
+{
+    SafeRelease(m_pColorBufferSRV);
+    SafeRelease(m_pColorBufferRTV);
+    SafeRelease(m_pColorBuffer);
+    HRESULT result = S_OK;
+    if (SUCCEEDED(result))
+    {
+        D3D11_TEXTURE2D_DESC desc;
+        desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+        desc.ArraySize = 1;
+        desc.MipLevels = 1;
+        desc.Usage = D3D11_USAGE_DEFAULT;
+        desc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
+        desc.CPUAccessFlags = 0;
+        desc.MiscFlags = 0;
+        desc.SampleDesc.Count = 1;
+        desc.SampleDesc.Quality = 0;
+        desc.Height = m_height;
+        desc.Width = m_width;
+        result = m_pDevice->CreateTexture2D(&desc, nullptr, &m_pColorBuffer);
+        assert(SUCCEEDED(result));
+        if (SUCCEEDED(result))
+        {
+            result = SetResourceName(m_pColorBuffer, "ColorBuffer");
+        }
+    }
+    if (SUCCEEDED(result))
+    {
+        result = m_pDevice->CreateRenderTargetView(m_pColorBuffer, nullptr, &m_pColorBufferRTV);
+        assert(SUCCEEDED(result));
+        if (SUCCEEDED(result))
+        {
+            result = SetResourceName(m_pColorBufferRTV, "ColorBufferRTV");
+        }
+    }
+    if (SUCCEEDED(result))
+    {
+        D3D11_SHADER_RESOURCE_VIEW_DESC desc = {};
+        desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+        desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+        desc.Texture2D.MipLevels = 1;
+        desc.Texture2D.MostDetailedMip = 0;
+        result = m_pDevice->CreateShaderResourceView(m_pColorBuffer, &desc, &m_pColorBufferSRV);
+        assert(SUCCEEDED(result));
+        if (SUCCEEDED(result))
+        {
+            result = SetResourceName(m_pColorBufferSRV, "ColorBufferSRV");
+        }
+    }
+    return result;
+}*/
 
 void Graphics::Resize(const int& width, const int& height)
 {
@@ -307,7 +361,7 @@ void Graphics::Resize(const int& width, const int& height)
                 }
             }
 
-            skyBox.setRadius(camera.GetFov(), camera.GetNearPlane(), windowWidth, windowHeight);
+            skyBox.setRadius(camera.GetFov(), camera.GetNearPlane(), static_cast<float>(windowWidth), static_cast<float>(windowHeight));
 
             assert(SUCCEEDED(result));
         }

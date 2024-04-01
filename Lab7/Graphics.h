@@ -40,6 +40,7 @@ public:
 
 	void RenderImGUI();
 	void setDebugFrustum();
+
 private:
 	int windowWidth;
 	int windowHeight;
@@ -55,6 +56,7 @@ private:
 	ID3D11DepthStencilState* m_pDepthTransparentState;
 
 	ID3D11BlendState* m_pTransBlendState;
+
 
 	Camera camera;
 

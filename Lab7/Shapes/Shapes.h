@@ -28,6 +28,7 @@ public:
 
 	HRESULT setRasterizerState(ID3D11Device* m_pDevice, D3D11_CULL_MODE cullMode);
 	void addInstance();
+	void addHundredInstances();
 
 	void Translate(DirectX::XMMATRIX translateMatrix, int ind);
 	void Scale(DirectX::XMMATRIX scaleMatrix, int ind);

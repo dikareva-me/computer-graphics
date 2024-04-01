@@ -163,7 +163,7 @@ HRESULT Cube::CreateGeometry(ID3D11Device* m_pDevice)
 
     for (int i = 0; i < maxInstancesNum; i++)
     {
-        translateMatrices.push_back(DirectX::XMMatrixTranslation(rand() % 10, rand() % 10, rand() % 10));
+        translateMatrices.push_back(DirectX::XMMatrixTranslation((float)(rand() % 10), (float)(rand() % 10), (float)(rand() % 10)));
         scaleMatrices.push_back(DirectX::XMMatrixScaling(1.0f, 1.0f, 1.0f));
         rotateMatrices.push_back(DirectX::XMMatrixRotationAxis(DirectX::XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f), 0.0f));
         geomBuffers.push_back(GeomBuffer());
@@ -331,7 +331,10 @@ void Cube::RenderImGUI()
     {
         addInstance();
     }
-
+    if (ImGui::Button("+100"))
+    {
+        addHundredInstances();
+    }
     ImGui::Text((std::string("Instances num: ") + std::to_string(numInstances)).c_str());
     ImGui::Text((std::string("Visible instances num: ") + std::to_string(visibleObjectNum)).c_str());
 
