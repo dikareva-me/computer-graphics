@@ -3,6 +3,11 @@
 #include "SkyBox.h"
 #include "DDSTextureLoader11.h"
 
+
+UINT32 Up(UINT32 a, UINT32 b)
+{
+    return (a + b - 1) / b;
+}
 HRESULT SkyBox::CreateGeometry(ID3D11Device* m_pDevice)
 {
     static std::vector<Vertex> Vertices;
@@ -154,20 +159,18 @@ HRESULT SkyBox::CreateShaders(ID3D11Device* m_pDevice)
 
     return result;
 }
+inline HRESULT SetResourceName(ID3D11DeviceChild* pDevice, const std::string& name)
+{
+    return pDevice->SetPrivateData(WKPDID_D3DDebugObjectName, (UINT)name.length(), name.c_str());
+}
+
 
 HRESULT SkyBox::CreateTextures(ID3D11Device* m_pDevice)
 {
-    ID3D11SamplerState* m_pSampler;
-    ID3D11ShaderResourceView* m_pTextureView;
 
-    const wchar_t* fileNames[] = { L"cubemap/posx.dds", L"cubemap/negx.dds", L"cubemap/posy.dds",
-        L"cubemap/negy.dds", L"cubemap/posz.dds", L"cubemap/negz.dds" };
-    HRESULT result = DirectX::CreateDDSCubeTextureFromFile(m_pDevice, fileNames, nullptr, &m_pTextureView);
-
-    if (SUCCEEDED(result))
+    HRESULT result;
+    DXGI_FORMAT textureFmt;
     {
-        resources.push_back(m_pTextureView);
-
         D3D11_SAMPLER_DESC desc = {};
         desc.Filter = D3D11_FILTER_ANISOTROPIC;
         desc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
@@ -179,15 +182,69 @@ HRESULT SkyBox::CreateTextures(ID3D11Device* m_pDevice)
         desc.MaxAnisotropy = 16;
         desc.ComparisonFunc = D3D11_COMPARISON_NEVER;
         desc.BorderColor[0] = desc.BorderColor[1] = desc.BorderColor[2] = desc.BorderColor[3] = 1.0f;
-        result = m_pDevice->CreateSamplerState(&desc, &m_pSampler);
+        result = m_pDevice->CreateSamplerState(&desc, &m_pTextureSampler);
+        assert(SUCCEEDED(result));
+        if (SUCCEEDED(result)) {
+            result = SetResourceName(m_pTextureSampler, "TextureSampler");
+        }
+    }
+    {
+        const std::wstring TextureNames[6] = {
+           L"cubemap/posx.dds", L"cubemap/negx.dds", L"cubemap/posy.dds",
+        L"cubemap/negy.dds", L"cubemap/posz.dds", L"cubemap/negz.dds"
+        };
+        TextureDesc texDescs[6];
+        bool ddsRes = true;
+        for (int i = 0; i < 6 && ddsRes; i++)
+        {
+            ddsRes = LoadDDS(TextureNames[i].c_str(), texDescs[i]);
+        }
+        textureFmt = texDescs[0].fmt; // Assume all are the same
+        D3D11_TEXTURE2D_DESC desc = {};
+        desc.Format = textureFmt;
+        desc.ArraySize = 6;
+        desc.MipLevels = 1;
+        desc.Usage = D3D11_USAGE_IMMUTABLE;
+        desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+        desc.CPUAccessFlags = 0;
+        desc.MiscFlags = D3D11_RESOURCE_MISC_TEXTURECUBE;
+        desc.SampleDesc.Count = 1;
+        desc.SampleDesc.Quality = 0;
+        desc.Height = texDescs[0].height;
+        desc.Width = texDescs[0].width;
+        UINT32 blockWidth = Up(desc.Width, 4u);
+        UINT32 blockHeight = Up(desc.Height, 4u);
+        UINT32 pitch = blockWidth * UINT32(GetBytesPerBlock(desc.Format));
+        D3D11_SUBRESOURCE_DATA data[6];
+        for (int i = 0; i < 6; i++) {
+            data[i].pSysMem = texDescs[i].pData;
+            data[i].SysMemPitch = pitch;
+            data[i].SysMemSlicePitch = 0;
+        }
+        result = m_pDevice->CreateTexture2D(&desc, data, &m_pCubemapTexture);
+        assert(SUCCEEDED(result));
+        if (SUCCEEDED(result)) {
+            result = SetResourceName(m_pCubemapTexture, "CubemapTexture");
+        }
+    }
+    {
+        D3D11_SHADER_RESOURCE_VIEW_DESC desc;
+        desc.Format = textureFmt;
+        desc.ViewDimension = D3D_SRV_DIMENSION_TEXTURECUBE;
+        desc.TextureCube.MipLevels = 1;
+        desc.TextureCube.MostDetailedMip = 0;
+
+        result = m_pDevice->CreateShaderResourceView(m_pCubemapTexture, &desc, &m_pCubemapTextureView);
+        assert(SUCCEEDED(result));
+        resources.push_back(m_pCubemapTextureView);
     }
 
     if (SUCCEEDED(result))
     {
-        samplers.push_back(m_pSampler);
+        samplers.push_back(m_pTextureSampler);
     }
-
     return result;
+
 }
 
 void SkyBox::Draw(const DirectX::XMMATRIX& vp, ID3D11DeviceContext* m_pDeviceContext)

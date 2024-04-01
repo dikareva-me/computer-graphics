@@ -14,10 +14,13 @@ bool VertexShader::Initialize(ID3D11Device* device, std::wstring shaderpath, D3D
 	ShaderInclude include;
 	ID3DBlob* pErrMsg = nullptr;
 	HRESULT hr = D3DCompileFromFile(shaderpath.c_str(), defines, &include, "main", "vs_5_0", NULL, NULL, &shaderBuffer, &pErrMsg);
-	if (!SUCCEEDED(hr) && pErrMsg != nullptr)
+	if (!SUCCEEDED(hr))
 	{
-		OutputDebugStringA((const char*)pErrMsg->GetBufferPointer());
-		return false;
+		if (pErrMsg != nullptr) 
+		{
+			OutputDebugStringA((const char*)pErrMsg->GetBufferPointer());
+			return false;
+		}
 	}
 
 	hr = device->CreateVertexShader(shaderBuffer->GetBufferPointer(), shaderBuffer->GetBufferSize(), NULL, &shader);
@@ -50,10 +53,13 @@ bool PixelShader::Initialize(ID3D11Device* device, std::wstring shaderpath, D3D_
 	ShaderInclude include;
 	ID3DBlob* pErrMsg = nullptr;
 	HRESULT hr = D3DCompileFromFile(shaderpath.c_str(), defines, &include, "main", "ps_5_0", NULL, NULL, &shaderBuffer, &pErrMsg);
-	if (!SUCCEEDED(hr) && pErrMsg != nullptr)
+	if (!SUCCEEDED(hr))
 	{
-		OutputDebugStringA((const char*)pErrMsg->GetBufferPointer());
-		return false;
+		if (pErrMsg != nullptr)
+		{
+			OutputDebugStringA((const char*)pErrMsg->GetBufferPointer());
+			return false;
+		}
 	}
 
 	hr = device->CreatePixelShader(shaderBuffer->GetBufferPointer(), shaderBuffer->GetBufferSize(), NULL, &shader);

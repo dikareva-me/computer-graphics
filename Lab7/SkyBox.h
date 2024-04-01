@@ -36,6 +36,9 @@ public:
 private:
 	ID3D11Buffer* m_pIndexBuffer = NULL;
 	ID3D11Buffer* m_pVertextBuffer = NULL;
+	ID3D11SamplerState* m_pTextureSampler = NULL;
+	ID3D11ShaderResourceView* m_pCubemapTextureView = NULL;
+	ID3D11Texture2D* m_pCubemapTexture = NULL;
 	std::vector<ID3D11Buffer*> constBuffers;
 	std::vector<ID3D11SamplerState*> samplers;
 	std::vector<ID3D11ShaderResourceView*> resources;
