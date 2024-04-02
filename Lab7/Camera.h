@@ -25,8 +25,9 @@ public:
 
 	float GetFov();
 	float GetNearPlane();
-private:
+	float GetFarPlane();
 	void UpdateViewMatrix();
+private:
 	DirectX::XMVECTOR posVector;
 	DirectX::XMVECTOR rotVector;
 
@@ -46,5 +47,6 @@ private:
 
 	float fov;
 	float n;
+	float farz;
 };
 

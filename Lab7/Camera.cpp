@@ -9,12 +9,13 @@ Camera::Camera()
 	UpdateViewMatrix();
 }
 
-void Camera::SetProjectionValues(float fovDegrees, float aspectRatio, float nearZ, float farZ)
+void Camera::SetProjectionValues(float fov_, float aspectRatio, float nearZ, float farZ)
 {
-	float fovRadians = (fovDegrees / 360.0f) * XM_2PI;
-	fov = fovRadians;
+	fov = fov_;
 	n = nearZ;
-	projectionMatrix = XMMatrixPerspectiveFovLH(fovRadians, aspectRatio, farZ, nearZ);
+	farz = farZ;
+	projectionMatrix = DirectX::XMMatrixPerspectiveLH(tanf(fov_ / 2) * 2 * farZ, tanf(fov_ / 2) * 2 * farZ * aspectRatio, farZ, nearZ);
+
 }
 
 const DirectX::XMMATRIX& Camera::GetViewMatrix() const
@@ -118,6 +119,11 @@ float Camera::GetFov()
 float Camera::GetNearPlane()
 {
 	return n;
+}
+
+float Camera::GetFarPlane()
+{
+	return farz;
 }
 
 void Camera::UpdateViewMatrix()

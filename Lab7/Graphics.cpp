@@ -203,7 +203,13 @@ bool Graphics::InitScene()
     skyBox.CreateTextures(m_pDevice);
 
     camera.SetPosition(DirectX::XMVectorSet(-2.0f, 0.0f, 0.0f, 0.0));
-    camera.SetProjectionValues(100.0f, (float)windowHeight / windowWidth, 0.1f, 100.0f);
+
+    float f = 100.0f;
+    float n = 0.1f;
+    float fov = 3.14f / 3;
+    camera.SetProjectionValues(fov, (float)windowHeight / windowWidth, n, f);
+
+   // camera.SetProjectionValues(100.0f, (float)windowHeight / windowWidth, 0.1f, 100.0f);
     camera.AdjustRotation(DirectX::XMVectorSet(0.0f, DirectX::XM_PIDIV2, 0.0f, 1.0f));
 
 
@@ -361,7 +367,16 @@ void Graphics::Resize(const int& width, const int& height)
                 }
             }
 
+
             skyBox.setRadius(camera.GetFov(), camera.GetNearPlane(), static_cast<float>(windowWidth), static_cast<float>(windowHeight));
+  
+
+            float f = 100.0f;
+            float n = 0.1f;
+            float fov = 3.14f / 3;
+            camera.SetProjectionValues(fov, (float)windowHeight / windowWidth, n, f);
+
+   
 
             assert(SUCCEEDED(result));
         }
