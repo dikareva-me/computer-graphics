@@ -14,12 +14,19 @@ private:
 
 	struct VisibleIndexes
 	{
-		DirectX::XMINT4 idx;
+		DirectX::XMUINT4 idx;
 	};
 
 	struct TextureNum
 	{
 		DirectX::XMINT4 i;
+	};
+
+	struct CullParams
+	{
+		DirectX::XMINT4 numShapes;
+		DirectX::XMFLOAT4 bbMin[1000];
+		DirectX::XMFLOAT4 bbMax[1000];
 	};
 
 	struct Vertex
@@ -41,10 +48,15 @@ public:
 private:
 	DirectX::BoundingFrustum frustum;
 	bool debugMode = false;
+	void ReadQueries(ID3D11DeviceContext* m_pDeviceContext);
 	std::vector<GeomBuffer> geomBuffers;
 	std::vector<VisibleIndexes> visibleIndBuffer;
 	std::vector<TextureNum> texNumBuffers;
 	std::vector<float> rotateSpeed;
 	std::vector<float> rotateAngle;
 	int visibleObjectNum = 0;
+	int m_curFrame = 0;
+	int m_lastCompletedFrame = 0;
+
+	CullParams clParams;
 };

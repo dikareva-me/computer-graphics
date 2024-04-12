@@ -52,8 +52,15 @@ void InstanceShape::Clean()
 {
     vs.Clean();
     ps.Clean();
+    cs.Clean();
     SAFE_RELEASE(m_pIndexBuffer);
     SAFE_RELEASE(m_pVertextBuffer);
+    SAFE_RELEASE(m_pIndirectArgsSrc);
+    SAFE_RELEASE(m_pIndirectArgsUAV);
+    SAFE_RELEASE(m_pIndirectArgs);
+    SAFE_RELEASE(m_pGeomBufferInstVisGPU);
+    SAFE_RELEASE(m_pGeomBufferInstVis);
+    SAFE_RELEASE(m_pGeomBufferInstVisGPU_UAV);
     for (auto& buf : constBuffers)
     {
         SAFE_RELEASE(buf);
@@ -65,6 +72,10 @@ void InstanceShape::Clean()
     for (auto& sampler : samplers)
     {
         SAFE_RELEASE(sampler);
+    }
+    for (auto& query : m_queries)
+    {
+        SAFE_RELEASE(query);
     }
     SAFE_RELEASE(m_pInputLayout);
     SAFE_RELEASE(m_pIndexBuffer);
