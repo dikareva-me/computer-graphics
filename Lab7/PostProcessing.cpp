@@ -127,6 +127,7 @@ void PostProcessing::RenderImGUI()
 {
     static bool useSepia = false;
     static bool useContrast = false;
+    static bool kuwahara = false;
 
     ImGui::Begin("Post processing");
 
@@ -139,6 +140,14 @@ void PostProcessing::RenderImGUI()
     {
         ImGui::SliderFloat("Contrast alpha", &postProc.alpha.x, 0.0f, 10.0f);
     }
+
+    ImGui::Checkbox("Kuwahara filter", &kuwahara);
+    if (kuwahara) {
+        kuwahara = 1;
+    }
+    postProc.usesOper.z = kuwahara ? 1 : 0;
+
+
 
     ImGui::End();
 }
