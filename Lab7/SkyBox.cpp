@@ -327,6 +327,7 @@ void SkyBox::Clean()
     {
         SAFE_RELEASE(sampler);
     }
+    SAFE_RELEASE(m_pCubemapTexture);
     SAFE_RELEASE(m_pInputLayout);
     SAFE_RELEASE(m_pIndexBuffer);
     SAFE_RELEASE(m_pIndexBuffer);
