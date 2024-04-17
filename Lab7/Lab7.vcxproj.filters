@@ -184,5 +184,6 @@
     <FxCompile Include="PostProcPS.hlsl" />
     <FxCompile Include="SkyBoxVS.hlsl" />
     <FxCompile Include="SkyBoxPS.hlsl" />
+    <FxCompile Include="FrustumCullingCS.hlsl" />
   </ItemGroup>
 </Project>

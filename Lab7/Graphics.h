@@ -41,6 +41,7 @@ public:
 	void RenderImGUI();
 	void setDebugFrustum();
 
+	Cube cubeInstances;
 private:
 	int windowWidth;
 	int windowHeight;
@@ -60,7 +61,6 @@ private:
 
 	Camera camera;
 
-	Cube cubeInstances;
 	Light light;
 
 	PostProcessing postProc;
