@@ -3,8 +3,8 @@
 cbuffer CullParams : register (b1)
 {
 	uint4 numShapes;
-	float4 bbMin[1000];
-	float4 bbMax[1000];
+	float4 bbMin[1200];
+	float4 bbMax[1200];
 };
 
 RWStructuredBuffer<uint> indirectArgs : register(u0);

@@ -1,6 +1,12 @@
 #include "Engine.h"
 #include "Keyboard.h"
 #include "Mouse.h"
+#include <chrono>
+#include <algorithm>
+#include <numeric>
+#include <iostream>
+#include <fstream>
+
 
 Engine& Engine::getInstance()
 {
@@ -104,8 +110,84 @@ void Engine::Update()
     {
         pressedKey = false;
     }
+    if (graphics->cubeInstances.startAnalyzing)
+    {
+        for (int mode = 0; mode < 3; mode++)
+        {
+            std::vector<double> avgs;
+            std::vector<double> mins;
+            std::vector<double> maxs;
 
-    graphics->RenderFrame();
+            for (int i = 100; i < 1100; i += 10)
+            {
+                std::vector <std::chrono::duration<double>> times;
+                graphics->cubeInstances.numInstances = i;
+                graphics->cubeInstances.drawMode = mode + 1;
+                auto start = std::chrono::system_clock::now();
+                while (std::chrono::system_clock::now() - start < std::chrono::seconds(3))
+                {
+                    auto timeRender = std::chrono::system_clock::now();
+                    graphics->RenderFrame();
+                    auto deltaTime = std::chrono::system_clock::now() - timeRender;
+                    times.push_back(std::chrono::duration<double>(deltaTime));
+                }
+                double average = std::accumulate(times.begin(), times.end(), std::chrono::duration<double>(0)).count() / times.size();
+
+
+                auto minMax = std::minmax_element(times.begin(), times.end());
+                auto minDuration = *minMax.first;
+                auto maxDuration = *minMax.second;
+                double minSeconds = minDuration.count();
+                double maxSeconds = maxDuration.count();
+
+                avgs.emplace_back(average);
+                mins.emplace_back(minSeconds);
+                maxs.emplace_back(maxSeconds);
+            }
+
+            WriteFile(mode, avgs, mins, maxs);
+        }
+
+    
+    }
+    else graphics->RenderFrame();
+}
+
+void Engine::WriteFile(int numFile, const std::vector<double> avgs, const std::vector<double> mins, const std::vector<double> maxs)
+{
+    std::string filename;
+    if (numFile == 0)
+        filename = "Indexed.csv";
+    else if (numFile == 1)
+        filename = "Lab7.csv";
+    else if (numFile == 2)
+        filename = "Lab9.csv";
+    else
+        return;
+    
+    std::ofstream file(filename, std::ios::out);
+
+    if (file.is_open())
+    {
+        for (const auto& item : avgs)
+        {
+            file << item << ";";
+        }
+        file << '\n';
+        for (const auto& item : mins)
+        {
+            file << item << ";";
+        }
+        file << '\n';
+        for (const auto& item : maxs)
+        {
+            file << item << ";";
+        }
+        file << '\n';
+
+        file.close();
+    }
+
 }
 
 void Engine::WindowResize(const int& width, const int& height)

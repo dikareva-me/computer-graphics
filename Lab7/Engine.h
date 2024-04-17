@@ -14,6 +14,7 @@ public:
 	bool ProcessMessages();
 	void Update();
 	void WindowResize(const int& width, const int& height);
+	void WriteFile(int numFile, const std::vector<double> avgs, const std::vector<double> mins, const std::vector<double> maxs);
 private:
 	Engine() = default;
 	Engine(const Engine&) = delete;

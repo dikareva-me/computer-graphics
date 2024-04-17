@@ -25,8 +25,8 @@ private:
 	struct CullParams
 	{
 		DirectX::XMINT4 numShapes;
-		DirectX::XMFLOAT4 bbMin[1000];
-		DirectX::XMFLOAT4 bbMax[1000];
+		DirectX::XMFLOAT4 bbMin[1200];
+		DirectX::XMFLOAT4 bbMax[1200];
 	};
 
 	struct Vertex
@@ -45,6 +45,8 @@ public:
 	void RenderImGUI();
 
 	void setDebug();
+	int drawMode = 2;
+	bool startAnalyzing = 0;
 private:
 	DirectX::BoundingFrustum frustum;
 	bool debugMode = false;

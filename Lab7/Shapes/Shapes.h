@@ -39,6 +39,7 @@ public:
 	int getNumInstances();
 
 	void Clean();
+	int numInstances = 0;
 protected:
 	ID3D11Buffer* m_pIndexBuffer = NULL;
 	ID3D11Buffer* m_pVertextBuffer = NULL;
@@ -70,6 +71,5 @@ protected:
 
 	SceneBuffer scBuffer;
 
-	int maxInstancesNum = 1000;
-	int numInstances = 0;
+	int maxInstancesNum = 1200;
 };
